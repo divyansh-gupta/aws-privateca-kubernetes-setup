@@ -1,0 +1,138 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-example
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: ingress-example
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html
+        configMap:
+          name: web-content
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-content
+  namespace: ingress-example
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>AWS Private CA Integration Demo</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 40px;
+          line-height: 1.6;
+        }
+        h1 {
+          color: #232f3e;
+        }
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+        }
+        .success {
+          color: #008000;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>AWS Private CA Integration Demo</h1>
+        <p>This page is secured with TLS using a certificate issued by AWS Private CA.</p>
+        <p class="success">✓ TLS Connection Established</p>
+        <p>The certificate was automatically provisioned and managed by cert-manager and the AWS Private CA Issuer.</p>
+        <h2>Certificate Details:</h2>
+        <ul>
+          <li>Issuer: AWS Private CA</li>
+          <li>Validity: 90 days</li>
+          <li>Auto-renewal: 15 days before expiration</li>
+        </ul>
+      </div>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app
+  namespace: ingress-example
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: web-app
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: web-app-cert
+  namespace: ingress-example
+spec:
+  secretName: web-app-tls
+  duration: 2160h # 90 days
+  renewBefore: 360h # 15 days
+  commonName: example.com
+  dnsNames:
+  - example.com
+  - www.example.com
+  - LOAD_BALANCER_HOSTNAME # This will be replaced by the script
+  issuerRef:
+    name: aws-pca-cluster-issuer
+    kind: AWSPCAClusterIssuer
+    group: awspca.cert-manager.io
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-ingress
+  namespace: ingress-example
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  tls:
+  - hosts:
+    - example.com
+    - www.example.com
+    - LOAD_BALANCER_HOSTNAME # This will be replaced by the script
+    secretName: web-app-tls
+  rules:
+  - host: LOAD_BALANCER_HOSTNAME # This will be replaced by the script
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-app
+            port:
+              number: 80

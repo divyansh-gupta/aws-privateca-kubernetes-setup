@@ -1,0 +1,42 @@
+{
+  "name": "aws-pca-k8s-integration",
+  "version": "1.0.0",
+  "description": "This project provides a simple, modular approach to integrate AWS Private CA with Kubernetes clusters. It allows you to go from zero to a fully configured PKI infrastructure in your Kubernetes environment with minimal effort.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples"
+  },
+  "scripts": {
+    "create:cluster": "bash scripts/create-cluster.sh",
+    "deploy:core": "bash scripts/deploy-core.sh",
+    "deploy:ingress": "bash scripts/deploy-ingress.sh",
+    "deploy:roles-anywhere": "bash scripts/deploy-roles-anywhere.sh",
+    "build:cdk": "cd cdk && npm run build",
+    "deploy:cdk": "cd cdk && npm run deploy",
+    "test": "cd cdk && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/aws-pca-k8s-integration.git"
+  },
+  "keywords": [
+    "aws",
+    "pca",
+    "kubernetes",
+    "certificates",
+    "cert-manager",
+    "eks",
+    "privateca"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/aws-pca-k8s-integration/issues"
+  },
+  "homepage": "https://github.com/yourusername/aws-pca-k8s-integration#readme",
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=7.0.0"
+  }
+}
