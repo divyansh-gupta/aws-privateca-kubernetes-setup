@@ -28,5 +28,5 @@ export const DEFAULT_CA_CONFIG: CAConfig = {
     organization: 'Example Organization',
     country: 'US',
   },
-  validityDays: 365,
+  validityDays: 3650,
 };

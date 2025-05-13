@@ -1,6 +1,5 @@
-cdk/bin
 cdk/cdk.out
 cdk/dist
 cdk/node_modules
 cdk.context.json
-
+istio-*

@@ -41,16 +41,14 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
   --namespace ingress-nginx \
   --create-namespace \
   --set controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-type"="nlb" \
-  --set controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"="internet-facing" \
-  --set serviceAccount.create=false \
-  --set serviceAccount.name=ingress-nginx
+  --set controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"="internet-facing"
 
 # Wait for the load balancer to be provisioned
 echo "Waiting for the load balancer to be provisioned..."
 kubectl wait --namespace ingress-nginx \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/component=controller \
-  --timeout=120s
+  --timeout=180s
 
 # Get the load balancer hostname
 LOAD_BALANCER_HOSTNAME=$(kubectl get service -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
@@ -58,8 +56,6 @@ echo "Load balancer hostname: $LOAD_BALANCER_HOSTNAME"
 
 # Deploy a demo application
 echo "Deploying a demo application..."
-kubectl create namespace demo-app --dry-run=client -o yaml | kubectl apply -f -
-
 export LOAD_BALANCER_HOSTNAME=$LOAD_BALANCER_HOSTNAME
 envsubst < "$(dirname "$0")/../kubernetes/ingress/demo-app.yaml" | kubectl apply -f -
 

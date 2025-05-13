@@ -87,29 +87,16 @@ else
 fi
 
 echo "CA ARN: $CA_ARN"
-
-# Install EKS Pod Identity Agent
-echo "Installing EKS Pod Identity Agent..."
-eksctl create addon --cluster $CLUSTER_NAME --name eks-pod-identity-agent --force
+export CA_ARN
+export REGION
 
 # Install cert-manager
 echo "Installing cert-manager..."
-kubectl create namespace cert-manager --dry-run=client -o yaml | kubectl apply -f -
-
-# Install cert-manager with Helm
-helm repo add jetstack https://charts.jetstack.io --force-update
-helm upgrade --install cert-manager jetstack/cert-manager \
-  --namespace cert-manager \
-  --create-namespace \
-  --set installCRDs=true \
-  --set serviceAccount.create=true \
-  --set serviceAccount.name=cert-manager
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.2/cert-manager.yaml
 
 # Install AWS PCA Issuer
 echo "Installing AWS PCA Issuer..."
 kubectl create namespace aws-privateca-issuer --dry-run=client -o yaml | kubectl apply -f -
-
-# Create IRSA for AWS PCA Issuer
 echo "Creating IAM Role for Service Account (IRSA) for AWS PCA Issuer..."
 eksctl create iamserviceaccount \
   --name aws-privateca-issuer \
@@ -124,24 +111,28 @@ helm repo add awspca https://cert-manager.github.io/aws-privateca-issuer --force
 helm upgrade --install aws-privateca-issuer awspca/aws-privateca-issuer \
   --namespace aws-privateca-issuer \
   --create-namespace \
-  --set serviceAccount.create=true \
+  --set serviceAccount.create=false \
   --set serviceAccount.name=aws-privateca-issuer
 
 # Create AWS PCA Cluster Issuer
 echo "Creating AWS PCA Cluster Issuer..."
-cd "$(dirname "$0")/.."
+cd /Users/guptadiv/Desktop/k8s/aws-privateca-kubernetes-setup
 CLUSTER_ISSUER_PATH="kubernetes/core/cluster-issuer.yaml"
-echo $CLUSTER_ISSUER_PATH
 
-echo "Using cluster issuer file at: $CLUSTER_ISSUER_PATH"
-envsubst < "$CLUSTER_ISSUER_PATH" | kubectl apply -f -
-kubectl wait --for=condition=Ready awspcaclusterissuer aws-pca-cluster-issuer --timeout=120s
+# Create a temporary file with the variables substituted
+TEMP_ISSUER_FILE=$(mktemp)
+envsubst < "$CLUSTER_ISSUER_PATH" > "$TEMP_ISSUER_FILE"
+
+# Show the content of the processed file for debugging
+echo "Content of processed cluster issuer file:"
+cat "$TEMP_ISSUER_FILE"
+echo $TEMP_ISSUER_FILE
+
+# Apply the file
+kubectl apply -f "$TEMP_ISSUER_FILE"
 
 echo "=== Deployment Complete ==="
 echo "Your Kubernetes cluster is now configured with AWS Private CA integration."
 echo "You can now issue certificates using the 'aws-pca-cluster-issuer' issuer."
 echo "Example:"
 echo "  kubectl apply -f kubernetes/core/example-certificate.yaml"
-echo ""
-echo "Or view the example certificate file at:"
-echo "  kubernetes/core/example-certificate.yaml"
