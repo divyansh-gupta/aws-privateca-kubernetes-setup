@@ -1,0 +1,17 @@
+{
+  "caConfig": {
+    "type": "ROOT",
+    "keyAlgorithm": "RSA_2048",
+    "signingAlgorithm": "SHA256WITHRSA",
+    "subject": {
+      "commonName": "EKS-PCA-Root",
+      "organization": "Example Organization",
+      "country": "US"
+    },
+    "validityDays": 365
+  },
+  "tags": {
+    "Project": "AWS-PCA-K8s-Integration",
+    "Environment": "Demo"
+  }
+}

@@ -1,0 +1,31 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: aws-pca-k8s-demo
+  region: us-east-1
+  version: "1.32"
+
+accessConfig:
+  authenticationMode: API
+
+# IAM OIDC provider will be created automatically
+iam:
+  withOIDC: true
+
+# Enable managed addons
+addons:
+- name: eks-pod-identity-agent
+  version: latest
+
+autoModeConfig:
+  # defaults to false
+  enabled: true
+  # optional, defaults to [general-purpose, system].
+  # suggested to leave unspecified
+  # To disable creation of nodePools, set it to the empty array ([]).
+  nodePools:
+  - general-purpose
+  # optional, eksctl creates a new role if this is not supplied
+  # and nodePools are present.
+  #nodeRoleARN: string

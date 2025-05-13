@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: example-cert
+  namespace: default
+spec:
+  secretName: example-cert-tls
+  duration: 2160h # 90 days
+  renewBefore: 360h # 15 days
+  commonName: example.com
+  dnsNames:
+  - example.com
+  - www.example.com
+  issuerRef:
+    name: aws-pca-cluster-issuer
+    kind: AWSPCAClusterIssuer
+    group: awspca.cert-manager.io
