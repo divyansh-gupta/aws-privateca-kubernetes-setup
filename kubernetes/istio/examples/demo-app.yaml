@@ -1,86 +1,54 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: hello
-  namespace: istio-demo
-  labels:
-    app: hello
-    service: hello
-spec:
-  ports:
-  - port: 80
-    name: http
-    targetPort: 8080
-  selector:
-    app: hello
----
+# demo-app.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hello
   namespace: istio-demo
-  labels:
-    app: hello
-    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: hello
-      version: v1
   template:
     metadata:
       labels:
         app: hello
-        version: v1
     spec:
       containers:
       - name: hello
-        image: istio/examples-helloworld-v1
+        image: httpd:2.4
         ports:
-        - containerPort: 8080
+        - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: world
+  name: hello
   namespace: istio-demo
-  labels:
-    app: world
-    service: world
 spec:
-  ports:
-  - port: 80
-    name: http
-    targetPort: 8080
   selector:
-    app: world
+    app: hello
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: world
+  name: client
   namespace: istio-demo
-  labels:
-    app: world
-    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: world
-      version: v1
+      app: client
   template:
     metadata:
       labels:
-        app: world
-        version: v1
+        app: client
     spec:
       containers:
-      - name: world
-        image: istio/examples-helloworld-v1
-        ports:
-        - containerPort: 8080
-        env:
-        - name: SERVICE_NAME
-          value: "World"
+      - name: client
+        image: curlimages/curl
+        command: ["/bin/sleep", "3650d"]
