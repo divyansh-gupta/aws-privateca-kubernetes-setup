@@ -9,7 +9,7 @@ metadata:
 accessConfig:
   authenticationMode: API
 
-# IAM OIDC provider will be created automatically
+# IAM OIDC provider will be created
 iam:
   withOIDC: true
 
@@ -19,13 +19,7 @@ addons:
   version: latest
 
 autoModeConfig:
-  # defaults to false
   enabled: true
-  # optional, defaults to [general-purpose, system].
-  # suggested to leave unspecified
-  # To disable creation of nodePools, set it to the empty array ([]).
-  nodePools:
-  - general-purpose
   # optional, eksctl creates a new role if this is not supplied
   # and nodePools are present.
   #nodeRoleARN: string

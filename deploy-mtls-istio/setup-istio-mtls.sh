@@ -34,7 +34,7 @@ kubectl create namespace istio-system --dry-run=client -o yaml | kubectl apply -
 
 # Apply the Istio configurations
 echo "Applying Istio configurations..."
-envsubst < kubernetes/istio/base/istio-cert.yaml | kubectl apply -f -
+envsubst < "$(dirname "$0")/manifests/istio-cert.yaml" | kubectl apply -f -
 kubectl wait --for=condition=Ready certificate istio-ca -n istio-system --timeout=60s
 
 # Install Istio core components using the cert-manager generated certificate
@@ -50,10 +50,10 @@ kubectl label namespace istio-demo istio-injection=enabled
 
 # Deploy the example application
 echo "Deploying example application..."
-kubectl apply -f kubernetes/istio/examples/demo-app.yaml
+kubectl apply -f "$(dirname "$0")/manifests/demo-app.yaml"
 
 # Apply mTLS policy
-kubectl apply -f kubernetes/istio/base/peer-authentication.yaml
+kubectl apply -f "$(dirname "$0")/manifests/peer-authentication.yaml"
 
 # Wait for pods to be ready
 echo "Waiting for pods to be ready..."

@@ -57,11 +57,11 @@ echo "Load balancer hostname: $LOAD_BALANCER_HOSTNAME"
 # Deploy a demo application
 echo "Deploying a demo application..."
 export LOAD_BALANCER_HOSTNAME=$LOAD_BALANCER_HOSTNAME
-envsubst < "$(dirname "$0")/../kubernetes/ingress/demo-app.yaml" | kubectl apply -f -
+envsubst < "$(dirname "$0")/manifests/demo-app.yaml" | kubectl apply -f -
 
 echo "=== Deployment Complete ==="
 echo "Your TLS-enabled ingress is now available at:"
 echo "https://${LOAD_BALANCER_HOSTNAME}"
 echo ""
 echo "Note: Since the certificate is issued by a private CA, your browser will show a warning."
-echo "To trust the certificate, you would need to import the CA certificate into your trust store."
+echo "To trust the certificate, you need to import the CA certificate into your trust store."
