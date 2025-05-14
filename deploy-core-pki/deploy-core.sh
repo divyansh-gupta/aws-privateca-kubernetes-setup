@@ -56,9 +56,21 @@ if [ -z "$EXISTING_CA_ARN" ]; then
 
   # Install PCA Controller for Kubernetes
   echo "Installing PCA Controller for Kubernetes..."
-  RELEASE_VERSION=$(curl -sL https://api.github.com/repos/aws-controllers-k8s/acmpca-controller/releases/latest | jq -r '.tag_name | ltrimstr("v")')
-  aws ecr-public get-login-password --region us-east-1 | helm registry login --username AWS --password-stdin public.ecr.aws
-  helm upgrade --install --create-namespace -n ack-system ack-acmpca-controller oci://public.ecr.aws/aws-controllers-k8s/acmpca-chart --version=$RELEASE_VERSION --set=aws.region=$AWS_REGION
+  RELEASE_VERSION=$(curl -sL https://api.github.com/repos/aws-controllers-k8s/acmpca-controller/releases/latest | 
+                    jq -r '.tag_name | ltrimstr("v")')
+
+  aws ecr-public get-login-password --region us-east-1 | 
+  helm registry login --username AWS --password-stdin public.ecr.aws
+
+  helm upgrade --install \
+      --create-namespace \
+      -n ack-system \
+      ack-acmpca-controller \
+      oci://public.ecr.aws/aws-controllers-k8s/acmpca-chart \
+      --version=$RELEASE_VERSION \
+      --set=aws.region=$AWS_REGION \
+      --set=serviceAccount.create=false \
+      --set=serviceAccount.name=ack-acmpca-controller
 
   kubectl apply -f $(dirname "$0")/manifests/private-ca.yaml
   kubectl wait --for=jsonpath='{.status.status}'=ACTIVE certificateauthority root-ca --timeout=120s 
