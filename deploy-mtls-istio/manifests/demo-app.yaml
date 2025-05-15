@@ -52,3 +52,14 @@ spec:
       - name: client
         image: curlimages/curl
         command: ["/bin/sleep", "3650d"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod-no-istio
+  namespace: test-mtls
+spec:
+  containers:
+  - name: curl
+    image: curlimages/curl
+    command: ["sleep", "3600"]

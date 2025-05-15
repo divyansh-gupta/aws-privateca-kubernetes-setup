@@ -90,7 +90,7 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 # Install AWS PCA Issuer
 echo "Installing AWS PCA Issuer..."
 kubectl create namespace aws-privateca-issuer --dry-run=client -o yaml | kubectl apply -f -
-echo "Creating IAM Role for Service Account (IRSA) for AWS PCA Issuer..."
+
 eksctl create iamserviceaccount \
   --name aws-privateca-issuer \
   --namespace aws-privateca-issuer \
@@ -107,9 +107,11 @@ helm upgrade --install aws-privateca-issuer awspca/aws-privateca-issuer \
   --set serviceAccount.create=false \
   --set serviceAccount.name=aws-privateca-issuer
 
+kubectl wait --for=condition=ready pods --all -n aws-privateca-issuer --timeout=180s
+
 # Create AWS PCA Cluster Issuer
 echo "Creating AWS PCA Cluster Issuer..."
-kubectl apply -f "$(dirname "$0")/manifests/cluster-issuer.yaml"
+envsubst < "$(dirname "$0")/manifests/cluster-issuer.yaml" | kubectl apply -f -
 
 echo "=== Deployment Complete ==="
 echo "Your Kubernetes cluster is now configured with AWS Private CA integration."

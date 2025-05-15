@@ -1,79 +1,61 @@
-# Istio mTLS with AWS Private CA
+# mTLS with Istio and AWS Private CA
 
-This directory contains configurations for setting up Istio with AWS Private CA for automatic certificate provisioning and mTLS between services.
+This module demonstrates how to implement mutual TLS (mTLS) authentication between services using Istio and AWS Private CA.
 
 ## Overview
 
-The setup integrates the following components:
-- AWS Private CA - provides the root certificate authority
-- cert-manager - manages certificate lifecycle
-- AWS PCA Issuer - connects cert-manager to AWS Private CA
-- Istio - provides service mesh capabilities with mTLS
+This setup:
+1. Installs Istio with AWS Private CA integration
+2. Configures Istio to use certificates from AWS Private CA for mTLS
+3. Deploys a demo application to demonstrate mTLS communication
+4. Enforces mTLS policy for all services in the demo namespace
 
-## Directory Structure
+## Prerequisites
 
-- `base/` - Core Istio and certificate configurations
-  - `istio-cluster-issuer.yaml` - ClusterIssuer configuration using AWS PCA
-  - `istio-cert.yaml` - Certificate configuration for Istio CA
-  - `peer-authentication.yaml` - Istio PeerAuthentication policy for strict mTLS
+- An EKS cluster with the core AWS Private CA integration set up
+- kubectl configured to access your EKS cluster
+- Istio CLI (istioctl) installed
 
-- `examples/` - Example applications to demonstrate mTLS
-  - `demo-app.yaml` - Two services (hello and world) that communicate with each other
-  - `client-pod.yaml` - A client pod without Istio sidecar for testing mTLS enforcement
+## Usage
 
-## How It Works
+```bash
+./setup-istio-mtls.sh [OPTIONS]
+```
 
-1. AWS Private CA provides the root certificate authority
-2. cert-manager requests a certificate from AWS Private CA
-3. The certificate is stored as a Kubernetes secret
-4. Istio uses this certificate for mTLS between services
-5. All pods in the mesh automatically get certificates and establish mTLS connections
+### Options
+
+- `--cluster-name`: Name of the EKS cluster (default: aws-pca-k8s-demo)
+- `--region`: AWS region (default: us-east-1)
+
+### Example
+
+```bash
+./setup-istio-mtls.sh --cluster-name my-eks-cluster --region us-west-2
+```
 
 ## Testing mTLS
 
-You can verify that mTLS is working by:
+After deployment, you can test mTLS:
 
-1. Checking that certificates are properly mounted:
+1. Test from inside the mesh (should succeed):
    ```
-   kubectl exec -it -n istio-demo deploy/hello -- ls -la /etc/certs
-   ```
-
-2. Testing communication between services (should succeed with mTLS):
-   ```
-   kubectl exec -it -n istio-demo deploy/hello -- curl world.istio-demo.svc.cluster.local
+   kubectl exec -it -n istio-demo deploy/client -c client -- curl hello.istio-demo.svc.cluster.local
    ```
 
-3. Verifying mTLS is enforced (from client pod without Istio sidecar):
+2. Create a pod without istio-injection to test mTLS enforcement (should fail):
    ```
-   kubectl exec -it -n istio-demo client -- curl hello.istio-demo.svc.cluster.local
-   ```
-   This should fail because the client pod doesn't have the required certificates.
-
-4. Checking the TLS status:
-   ```
-   istioctl x describe pod hello -n istio-demo
+   kubectl run test-pod --image=curlimages/curl -n istio-demo --command -- sleep 3650d
+   kubectl exec -it test-pod -n istio-demo -- curl hello.istio-demo.svc.cluster.local
    ```
 
-## Troubleshooting
+## Architecture
 
-If you encounter issues:
+The setup creates:
+- Istio control plane configured to use AWS Private CA certificates
+- A demo namespace with Istio sidecar injection enabled
+- A hello service and a client service to demonstrate mTLS communication
+- A PeerAuthentication policy that enforces STRICT mTLS
 
-1. Check that the certificate was issued correctly:
-   ```
-   kubectl get certificate -n istio-system
-   ```
+## Customization
 
-2. Verify Istio sidecar injection is enabled:
-   ```
-   kubectl get namespace istio-demo --show-labels
-   ```
-
-3. Check Istio proxy logs:
-   ```
-   kubectl logs -n istio-demo deploy/hello -c istio-proxy
-   ```
-
-4. Verify mTLS policy:
-   ```
-   kubectl get peerauthentication -n istio-system
-   ```
+You can modify the manifests in the `manifests` directory to customize the demo application or add your own services with mTLS.

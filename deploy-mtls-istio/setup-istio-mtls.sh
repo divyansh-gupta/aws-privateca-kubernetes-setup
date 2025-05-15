@@ -35,7 +35,7 @@ kubectl create namespace istio-system --dry-run=client -o yaml | kubectl apply -
 # Apply the Istio configurations
 echo "Applying Istio configurations..."
 envsubst < "$(dirname "$0")/manifests/istio-cert.yaml" | kubectl apply -f -
-kubectl wait --for=condition=Ready certificate istio-ca -n istio-system --timeout=60s
+kubectl wait --for=condition=Ready certificate.cert-manager.io/istio-ca -n istio-system --timeout=60s
 
 # Install Istio core components using the cert-manager generated certificate
 istioctl install --set profile=minimal \
@@ -43,10 +43,12 @@ istioctl install --set profile=minimal \
   --set meshConfig.trustDomainAliases[0]="cluster.local" \
   -y
 
-# Create and label namespace for demo
+# Create and label namespaces for demo
 echo "Creating demo namespace..."
-kubectl create namespace istio-demo
+kubectl create namespace istio-demo --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace istio-demo istio-injection=enabled
+
+kubectl create namespace test-mtls --dry-run=client -o yaml | kubectl apply -f -
 
 # Deploy the example application
 echo "Deploying example application..."
@@ -59,11 +61,19 @@ kubectl apply -f "$(dirname "$0")/manifests/peer-authentication.yaml"
 echo "Waiting for pods to be ready..."
 kubectl wait --for=condition=Ready pod -l app=hello -n istio-demo --timeout=120s
 kubectl wait --for=condition=Ready pod -l app=client -n istio-demo --timeout=120s
+kubectl wait --for=condition=Ready pod/test-pod-no-istio -n test-mtls --timeout=60s
 
-echo "Setup complete! You can now test mTLS:"
-echo "1. Test from inside the mesh (should succeed):"
-echo "kubectl exec -it -n istio-demo deploy/client -c client -- curl hello.istio-demo.svc.cluster.local"
 echo ""
-echo "2. Create a pod without istio-injection to test mTLS enforcement (should fail):"
-echo "kubectl run test-pod --image=curlimages/curl -n istio-demo --command -- sleep 3650d"
-echo "kubectl exec -it test-pod -n istio-demo -- curl hello.istio-demo.svc.cluster.local"
+echo "=== Testing mTLS Enforcement ==="
+echo "1. Testing from inside the mesh (should succeed):"
+echo "$ kubectl exec -n istio-demo deploy/client -c client -- curl http://hello.istio-demo.svc.cluster.local"
+kubectl exec -n istio-demo deploy/client -c client -- curl http://hello.istio-demo.svc.cluster.local
+echo ""
+echo "2. Testing from outside the mesh (should fail):"
+echo "$ kubectl exec -n test-mtls test-pod-no-istio -- curl http://hello.istio-demo.svc.cluster.local"
+if kubectl exec -n test-mtls test-pod-no-istio -- curl --max-time 5 http://hello.istio-demo.svc.cluster.local; then
+    echo "WARNING: Request from outside the mesh succeeded. mTLS might not be enforced correctly."
+    exit 1
+else
+    echo "SUCCESS: Request from outside the mesh failed as expected. mTLS is working correctly!"
+fi
