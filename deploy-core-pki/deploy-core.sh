@@ -1,12 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Default values
 REGION=${AWS_REGION:-us-east-1}
 CLUSTER_NAME=${CLUSTER_NAME:-aws-pca-k8s-demo}
 EXISTING_CA_ARN=""
 
-# Parse command line arguments
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
@@ -37,7 +35,6 @@ echo "Cluster: $CLUSTER_NAME"
 echo "Region: $REGION"
 export AWS_REGION=$REGION
 
-# Get AWS account ID
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 echo "AWS Account ID: $AWS_ACCOUNT_ID"
 
@@ -54,7 +51,6 @@ if [ -z "$EXISTING_CA_ARN" ]; then
     --approve \
     --override-existing-serviceaccounts
 
-  # Install PCA Controller for Kubernetes
   echo "Installing PCA Controller for Kubernetes..."
   RELEASE_VERSION=$(curl -sL https://api.github.com/repos/aws-controllers-k8s/acmpca-controller/releases/latest | 
                     jq -r '.tag_name | ltrimstr("v")')
@@ -83,11 +79,9 @@ fi
 echo "CA ARN: $CA_ARN"
 export CA_ARN
 
-# Install cert-manager
 echo "Installing cert-manager..."
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.2/cert-manager.yaml
+eksctl create addon --name cert-manager --cluster $CLUSTER_NAME --region $REGION
 
-# Install AWS PCA Issuer
 echo "Installing AWS PCA Issuer..."
 kubectl create namespace aws-privateca-issuer --dry-run=client -o yaml | kubectl apply -f -
 
@@ -96,7 +90,7 @@ eksctl create iamserviceaccount \
   --namespace aws-privateca-issuer \
   --cluster $CLUSTER_NAME \
   --region $REGION \
-  --attach-policy-arn arn:aws:iam::aws:policy/AWSPrivateCAFullAccess \
+  --attach-policy-arn arn:aws:iam::aws:policy/AWSPrivateCAConnectorForKubernetesPolicy \
   --approve \
   --override-existing-serviceaccounts
 
@@ -109,7 +103,6 @@ helm upgrade --install aws-privateca-issuer awspca/aws-privateca-issuer \
 
 kubectl wait --for=condition=ready pods --all -n aws-privateca-issuer --timeout=180s
 
-# Create AWS PCA Cluster Issuer
 echo "Creating AWS PCA Cluster Issuer..."
 envsubst < "$(dirname "$0")/manifests/cluster-issuer.yaml" | kubectl apply -f -
 

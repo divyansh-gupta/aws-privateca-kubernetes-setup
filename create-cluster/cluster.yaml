@@ -4,22 +4,16 @@ kind: ClusterConfig
 metadata:
   name: aws-pca-k8s-demo
   region: us-east-1
-  version: "1.32"
 
 accessConfig:
   authenticationMode: API
 
-# IAM OIDC provider will be created
 iam:
   withOIDC: true
 
-# Enable managed addons
 addons:
 - name: eks-pod-identity-agent
   version: latest
 
 autoModeConfig:
   enabled: true
-  # optional, eksctl creates a new role if this is not supplied
-  # and nodePools are present.
-  #nodeRoleARN: string

@@ -12,10 +12,10 @@ This setup:
 5. Creates a ClusterIssuer resource that connects to AWS Private CA
 
 ## Prerequisites
-
 - An EKS cluster
-- AWS CLI configured with permissions to create AWS Private CA resources
-- kubectl configured to access your EKS cluster
+- AWS CLI
+- eksctl
+- kubectl
 
 ## Usage
 
@@ -51,7 +51,7 @@ kubectl apply -f manifests/example-certificate.yaml
 
 Check the status of the certificate:
 ```bash
-kubectl get certificate.cert-manager.io example-cert
+kubectl get certificate example-cert
 ```
 
 ## Next Steps

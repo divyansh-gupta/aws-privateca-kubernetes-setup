@@ -12,11 +12,10 @@ This project provides a complete setup for integrating AWS Private CA with Kuber
 
 ## Prerequisites
 
-- AWS CLI configured with appropriate permissions
+- AWS CLI
 - kubectl
 - eksctl
 - Helm v3
-- Node.js and npm (for CDK deployment)
 - Istio CLI (for mTLS scenario)
 
 ## Getting Started

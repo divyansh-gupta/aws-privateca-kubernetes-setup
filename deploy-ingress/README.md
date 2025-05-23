@@ -6,15 +6,16 @@ This module demonstrates how to set up a TLS-enabled NGINX ingress controller th
 
 This setup:
 1. Installs the NGINX ingress controller
-2. Configures it with an AWS Network Load Balancer
+2. Configures it with an AWS Network Load Balancer if using EKS Auto Mode or the AWS Load Balancer Controller
 3. Deploys a demo application with TLS-enabled ingress
 4. Automatically provisions a certificate from AWS Private CA
 
 ## Prerequisites
 
 - An EKS cluster with the core AWS Private CA integration set up
-- kubectl configured to access your EKS cluster
-- Helm v3
+- EKS Auto Mode or the AWS Load Balancer Controller installed on the cluster
+- kubectl
+- Helm
 
 ## Usage
 
