@@ -1,33 +1,28 @@
-# Core AWS Private CA Integration with Kubernetes
+# Deploy core PKI tooling and AWS Private CA
 
-This module sets up the core integration between AWS Private CA and Kubernetes using cert-manager and the AWS PCA Issuer.
+This module installs the core PKI tooling to allow you to setup end to end encryption and utilize TLS for your Kubernetes cluster. It accomplishes this by setting up AWS Private CA as a cert-manager certificate issuer for your cluster. In later modules, you will be able to use this core setup to deploy TLS-enabled services and mTLS between pods.
 
 ## Overview
 
-This setup:
-1. Creates an AWS Private CA (or uses an existing one)
-2. Configures IAM roles for Kubernetes to access AWS Private CA
-3. Installs cert-manager in the Kubernetes cluster
-4. Installs the AWS PCA Issuer
-5. Creates a ClusterIssuer resource that connects to AWS Private CA
-
-## Prerequisites
-- An EKS cluster
-- AWS CLI
-- eksctl
-- kubectl
+This module executes the following actions:
+1. Installs an [AWS Private CA management controller](https://github.com/aws-controllers-k8s/acmpca-controller)
+1. Creates an AWS Private CA (or uses an existing one you provide)
+2. Configures IAM permissions for Kubernetes to access AWS Private CA
+3. Installs cert-manager
+4. Installs the [AWS Private CA Connector for Kubernetes](https://github.com/cert-manager/aws-privateca-issuer), a cert-manager issuer
+5. Creates a ClusterIssuer resource that allows cert-manager to begin issuing from your AWS Private CA
 
 ## Usage
 
 ```bash
-./deploy-core.sh [OPTIONS]
+./deploy-core.sh [OPTIONAL PARAMETERS]
 ```
 
-### Options
+### Optional Parameters
 
 - `--cluster-name`: Name of the EKS cluster (default: aws-pca-k8s-demo)
 - `--region`: AWS region (default: us-east-1)
-- `--existing-ca-arn`: ARN of an existing AWS Private CA (optional)
+- `--existing-ca-arn`: ARN of an existing AWS Private CA (default: script creates a CA)
 
 ### Examples
 
@@ -44,7 +39,7 @@ Use an existing AWS Private CA:
 ## Testing the Integration
 
 After deployment, you can test the integration by creating a certificate:
-
+ß
 ```bash
 kubectl apply -f manifests/example-certificate.yaml
 ```
@@ -58,12 +53,12 @@ kubectl get certificate example-cert
 
 After setting up the core integration, you can:
 
-1. Deploy the NGINX ingress controller with TLS:
+1. [**Deploy TLS-enabled ingress**:](deploy-ingress/README.md)
    ```
    ../deploy-ingress/deploy-ingress.sh --cluster-name <cluster-name> --region <region>
    ```
 
-2. Deploy mTLS for your pods with Istio:
+2. [**Deploy end to end encryption and mTLS with Istio**:](deploy-mtls-istio/README.md)
    ```
    ../deploy-mtls-istio/setup-istio-mtls.sh --cluster-name <cluster-name> --region <region>
    ```

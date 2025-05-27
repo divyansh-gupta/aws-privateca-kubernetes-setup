@@ -5,7 +5,6 @@ set -euo pipefail
 REGION=${AWS_REGION:-us-east-1}
 CLUSTER_NAME=${CLUSTER_NAME:-aws-pca-k8s-demo}
 
-# Parse command line arguments
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
@@ -31,11 +30,9 @@ echo "Cluster Name: $CLUSTER_NAME"
 echo "Region: $REGION"
 export AWS_REGION=$REGION
 
-# Create the EKS cluster
 echo "Creating EKS cluster (this may take 15-20 minutes)..."
 eksctl create cluster -f "$(dirname "$0")/cluster.yaml"
 
-# Verify cluster access
 echo "Verifying cluster access..."
 kubectl get nodes
 kubectl cluster-info

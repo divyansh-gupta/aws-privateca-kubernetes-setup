@@ -69,7 +69,7 @@ if [ -z "$EXISTING_CA_ARN" ]; then
       --set=serviceAccount.name=ack-acmpca-controller
 
   kubectl apply -f $(dirname "$0")/manifests/private-ca.yaml
-  kubectl wait --for=jsonpath='{.status.status}'=ACTIVE certificateauthority root-ca --timeout=120s 
+  kubectl wait --for=jsonpath='{.status.status}'=ACTIVE certificateauthority root-ca --timeout=120s
 
   CA_ARN=$(kubectl get certificateauthority root-ca -o json | jq -r '.status.ackResourceMetadata.arn')
 else

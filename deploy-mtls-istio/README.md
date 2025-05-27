@@ -1,28 +1,22 @@
 # mTLS with Istio and AWS Private CA
 
-This module demonstrates how to implement mutual TLS (mTLS) authentication between services using Istio and AWS Private CA.
+This module demonstrates how to implement end to end encryption in transit and mutual TLS (mTLS) between services using Istio with AWS Private CA.
 
 ## Overview
 
 This setup:
-1. Installs Istio with AWS Private CA integration
-2. Configures Istio to use certificates from AWS Private CA for mTLS
-3. Deploys a demo application to demonstrate mTLS communication
+1. Installs Istio to your cluster
+2. Configures Istio to use certificates from AWS Private CA for encryption in transit
+3. Deploys a demo application to demonstrate encryption in transit and mTLS
 4. Enforces mTLS policy for all services in the demo namespace
-
-## Prerequisites
-
-- An EKS cluster with the core AWS Private CA integration set up
-- kubectl configured to access your EKS cluster
-- Istio CLI (istioctl) installed
 
 ## Usage
 
 ```bash
-./setup-istio-mtls.sh [OPTIONS]
+./setup-istio-mtls.sh [OPTIONAL PARAMETERS]
 ```
 
-### Options
+### Optional Parameters
 
 - `--cluster-name`: Name of the EKS cluster (default: aws-pca-k8s-demo)
 - `--region`: AWS region (default: us-east-1)
@@ -35,7 +29,7 @@ This setup:
 
 ## Testing mTLS
 
-After deployment, you can test mTLS:
+After deployment, you can test mTLS and encryption in transit:
 
 1. Test from inside the mesh (should succeed):
    ```
@@ -48,13 +42,12 @@ After deployment, you can test mTLS:
    kubectl exec -it test-pod -n istio-demo -- curl hello.istio-demo.svc.cluster.local
    ```
 
-## Architecture
+3. Curl the Load Balancer URL for external access (TLS enabled):"
+   ```
+   curl -vk https://$GATEWAY_URL
+   ```
 
-The setup creates:
-- Istio control plane configured to use AWS Private CA certificates
-- A demo namespace with Istio sidecar injection enabled
-- A hello service and a client service to demonstrate mTLS communication
-- A PeerAuthentication policy that enforces STRICT mTLS
+   Note: The -k flag is used to skip certificate verification in testing. This is because a private certifiate is being used. Do not use this in production.
 
 ## Customization
 

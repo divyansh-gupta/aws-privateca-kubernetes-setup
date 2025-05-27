@@ -1,57 +1,47 @@
-# AWS Private CA Integration with Kubernetes
+# Sample: Encryption in Transit for Kubernetes
 
-This sample demonstrates how to integrate AWS Private Certificate Authority (PCA) with Kubernetes to enable secure TLS communications using private certificates.
+**Note:** Sample code, software libraries, command line tools, proofs of concept, templates, or other related technology are provided as AWS Content or Third-Party Content under the AWS Customer Agreement, or the relevant written agreement between you and AWS (whichever applies). You should not use this AWS Content or Third-Party Content in your production accounts, or on production or other critical data. You are responsible for testing, securing, and optimizing the AWS Content or Third-Party Content, such as sample code, as appropriate for production grade use based on your specific quality control practices and standards. Deploying AWS Content or Third-Party Content may incur AWS charges for creating or using AWS chargeable resources, such as running Amazon EC2 instances or using Amazon S3 storage.
 
 ## Overview
 
-This project provides a complete setup for integrating AWS Private CA with Kubernetes, enabling:
+This sample demonstrates how to enable end to end encryption in transit on Kubernetes by integrating AWS Private Certificate Authority (PCA) to enable secure TLS communications using private certificates.
 
-1. **Core PKI Integration** - Set up AWS Private CA as a certificate issuer for your Kubernetes cluster
-2. **TLS-enabled Ingress** - Configure NGINX ingress with TLS certificates from AWS Private CA
-3. **mTLS with Istio** - Implement mutual TLS authentication between services using Istio and AWS Private CA
-
-## Prerequisites
-
-- AWS CLI
-- kubectl
-- eksctl
-- Helm v3
-- Istio CLI (for mTLS scenario)
+This project provides a complete setup via a set of four scripts, each with it's own README.
 
 ## Getting Started
 
-1. **Create an EKS cluster**:
+1. [**Create an EKS cluster**:](create-cluster/README.md)
    ```
-   ./create-cluster/create-cluster.sh --region us-east-1
-   ```
-
-2. **Deploy core PKI integration**:
-   ```
-   ./deploy-core-pki/deploy-core.sh --region us-east-1
+   ./create-cluster/create-cluster.sh
    ```
 
-3. **Deploy TLS-enabled ingress** (optional):
+2. [**Deploy core PKI tooling and AWS Private CA**:](deploy-core-pki/README.md)
+Install core PKI encryption tooling and AWS Private CA as a certificate issuer for your Kubernetes cluster.
    ```
-   ./deploy-ingress/deploy-ingress.sh --region us-east-1
-   ```
-
-4. **Deploy mTLS with Istio** (optional):
-   ```
-   ./deploy-mtls-istio/setup-istio-mtls.sh --region us-east-1
+   ./deploy-core-pki/deploy-core.sh
    ```
 
-## Project Structure
+3. [**Deploy TLS-enabled ingress**:](deploy-ingress/README.md)
+Demonstrates how to deploy a TLS-enabled service to your cluster, behind a NGINX ingress that uses certificates from AWS Private CA.
+   ```
+   ./deploy-ingress/deploy-ingress.sh
+   ```
 
-- `cdk/` - AWS CDK code for provisioning AWS resources
-- `create-cluster/` - Scripts and configs for creating an EKS cluster
-- `deploy-core-pki/` - Core AWS Private CA integration with Kubernetes
-- `deploy-ingress/` - TLS-enabled ingress with AWS Private CA
-- `deploy-mtls-istio/` - mTLS implementation using Istio and AWS Private CA
+4. [**Deploy end to end encryption and mTLS with Istio**:](deploy-mtls-istio/README.md)
+Implement end to end encryption in transit and mTLS between services using Istio with AWS Private CA.
+   ```
+   ./deploy-mtls-istio/setup-istio-mtls.sh
+   ```
 
-## Security
+## Prerequisites
+You will need the following pre-installed to use this sample:
+
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [Istio CLI](https://github.com/istio/istio)
+- [kubectl](https://github.com/kubernetes/kubectl)
+- [eksctl](https://github.com/eksctl-io/eksctl)
+- [Helm v3](https://github.com/helm/helm)
+
+## Contributing & Security
 
 See [CONTRIBUTING](CONTRIBUTING.md) for more information.
-
-## License
-
-This library is licensed under the MIT-0 License. See the LICENSE file.
