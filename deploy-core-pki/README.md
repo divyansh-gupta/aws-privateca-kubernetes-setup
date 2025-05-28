@@ -39,7 +39,6 @@ Use an existing AWS Private CA:
 ## Testing the Integration
 
 After deployment, you can test the integration by creating a certificate:
-ß
 ```bash
 kubectl apply -f manifests/example-certificate.yaml
 ```

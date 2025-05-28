@@ -33,25 +33,24 @@ done
 echo "=== AWS Private CA Integration with Kubernetes ==="
 echo "Cluster: $CLUSTER_NAME"
 echo "Region: $REGION"
+export REGION
 export AWS_REGION=$REGION
 
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 echo "AWS Account ID: $AWS_ACCOUNT_ID"
 
 if [ -z "$EXISTING_CA_ARN" ]; then
+  echo "Installing PCA Controller for Kubernetes..."
   kubectl create namespace ack-system --dry-run=client -o yaml | kubectl apply -f -
 
-  echo "Creating IAM Role for Service Account (IRSA) for PCA Controller for Kubernetes..."
-  eksctl create iamserviceaccount \
-    --name ack-acmpca-controller \
+  eksctl create podidentityassociation --cluster $CLUSTER_NAME --region $REGION \
     --namespace ack-system \
-    --cluster $CLUSTER_NAME \
-    --region $REGION \
-    --attach-policy-arn arn:aws:iam::aws:policy/AWSPrivateCAFullAccess \
-    --approve \
-    --override-existing-serviceaccounts
+    --create-service-account \
+    --service-account-name ack-acmpca-controller \
+    --permission-policy-arns arn:aws:iam::aws:policy/AWSPrivateCAFullAccess 2>&1 | grep -v "already exists" || true
+  
+  sleep 15
 
-  echo "Installing PCA Controller for Kubernetes..."
   RELEASE_VERSION=$(curl -sL https://api.github.com/repos/aws-controllers-k8s/acmpca-controller/releases/latest | 
                     jq -r '.tag_name | ltrimstr("v")')
 
@@ -81,18 +80,18 @@ export CA_ARN
 
 echo "Installing cert-manager..."
 eksctl create addon --name cert-manager --cluster $CLUSTER_NAME --region $REGION
+kubectl wait --for=condition=ready pods --all -n cert-manager --timeout=120s
 
 echo "Installing AWS PCA Issuer..."
 kubectl create namespace aws-privateca-issuer --dry-run=client -o yaml | kubectl apply -f -
 
-eksctl create iamserviceaccount \
-  --name aws-privateca-issuer \
+eksctl create podidentityassociation --cluster $CLUSTER_NAME --region $REGION \
   --namespace aws-privateca-issuer \
-  --cluster $CLUSTER_NAME \
-  --region $REGION \
-  --attach-policy-arn arn:aws:iam::aws:policy/AWSPrivateCAConnectorForKubernetesPolicy \
-  --approve \
-  --override-existing-serviceaccounts
+  --create-service-account \
+  --service-account-name aws-privateca-issuer \
+  --permission-policy-arns arn:aws:iam::aws:policy/AWSPrivateCAConnectorForKubernetesPolicy 2>&1 | grep -v "already exists" || true
+
+sleep 15
 
 helm repo add awspca https://cert-manager.github.io/aws-privateca-issuer --force-update
 helm upgrade --install aws-privateca-issuer awspca/aws-privateca-issuer \
