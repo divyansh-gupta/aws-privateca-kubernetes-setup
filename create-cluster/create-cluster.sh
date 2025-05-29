@@ -10,13 +10,11 @@ while [[ $# -gt 0 ]]; do
   case $key in
     --cluster-name)
       CLUSTER_NAME="$2"
-      shift
-      shift
+      shift 2
       ;;
     --region)
       REGION="$2"
-      shift
-      shift
+      shift 2
       ;;
     *)
       echo "Unknown option: $1"

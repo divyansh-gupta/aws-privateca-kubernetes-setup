@@ -10,18 +10,15 @@ while [[ $# -gt 0 ]]; do
   case $key in
     --cluster-name)
       CLUSTER_NAME="$2"
-      shift
-      shift
+      shift 2
       ;;
     --region)
       REGION="$2"
-      shift
-      shift
+      shift 2
       ;;
     --existing-ca-arn)
       EXISTING_CA_ARN="$2"
-      shift
-      shift
+      shift 2
       ;;
     *)
       echo "Unknown option: $1"
@@ -30,7 +27,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-echo "=== AWS Private CA Integration with Kubernetes ==="
+echo "=== Deploying core tools and AWS Private CA ==="
 echo "Cluster: $CLUSTER_NAME"
 echo "Region: $REGION"
 export REGION
@@ -40,7 +37,7 @@ AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 echo "AWS Account ID: $AWS_ACCOUNT_ID"
 
 if [ -z "$EXISTING_CA_ARN" ]; then
-  echo "Installing PCA Controller for Kubernetes..."
+  echo "Installing AWS Private CA Controller for Kubernetes..."
   kubectl create namespace ack-system --dry-run=client -o yaml | kubectl apply -f -
 
   eksctl create podidentityassociation --cluster $CLUSTER_NAME --region $REGION \
@@ -82,7 +79,7 @@ echo "Installing cert-manager..."
 eksctl create addon --name cert-manager --cluster $CLUSTER_NAME --region $REGION
 kubectl wait --for=condition=ready pods --all -n cert-manager --timeout=120s
 
-echo "Installing AWS PCA Issuer..."
+echo "Installing AWS Private CA Connector for Kubernetes..."
 kubectl create namespace aws-privateca-issuer --dry-run=client -o yaml | kubectl apply -f -
 
 eksctl create podidentityassociation --cluster $CLUSTER_NAME --region $REGION \
