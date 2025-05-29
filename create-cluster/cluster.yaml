@@ -1,0 +1,19 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: aws-pca-k8s-demo
+  region: us-east-1
+
+accessConfig:
+  authenticationMode: API
+
+iam:
+  withOIDC: true
+
+addons:
+- name: eks-pod-identity-agent
+  version: latest
+
+autoModeConfig:
+  enabled: true

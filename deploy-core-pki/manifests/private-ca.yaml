@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: root-ca-certificate-secret
+  namespace: default
+data:
+  certificate: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: root-ca-certificate-chain-secret
+  namespace: default
+data:
+  certificateChain: ""
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthority
+metadata:
+  name: root-ca
+spec:
+  type: ROOT
+  certificateAuthorityConfiguration:
+    keyAlgorithm: RSA_2048
+    signingAlgorithm: SHA256WITHRSA
+    subject:
+      commonName: Example-RootCA
+      organization: Example-Org
+      organizationalUnit: Example-Org-Unit
+      country: US
+      state: VA
+      locality: Arlington
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: Certificate
+metadata:
+  name: root-ca-certificate
+spec:
+  certificateOutput:
+    namespace: default
+    name: root-ca-certificate-secret
+    key: certificate
+  certificateAuthorityRef:
+    from:
+      name: root-ca
+  certificateSigningRequestRef:
+    from:
+      name: root-ca
+  signingAlgorithm: SHA256WITHRSA
+  templateARN: arn:aws:acm-pca:::template/RootCACertificate/V1
+  validity:
+    type: YEARS
+    value: 5
+---
+apiVersion: acmpca.services.k8s.aws/v1alpha1
+kind: CertificateAuthorityActivation
+metadata:
+  name: root-ca-activation
+spec:
+  completeCertificateChainOutput:
+    namespace: default
+    name: root-ca-certificate-chain-secret
+    key: certificateChain
+  certificateAuthorityRef:
+    from:
+      name: root-ca
+  certificate:
+    namespace: default
+    name: root-ca-certificate-secret
+    key: certificate
+  status: ACTIVE
