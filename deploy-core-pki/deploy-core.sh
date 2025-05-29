@@ -48,7 +48,7 @@ if [ -z "$EXISTING_CA_ARN" ]; then
     --create-service-account \
     --service-account-name ack-acmpca-controller \
     --permission-policy-arns arn:aws:iam::aws:policy/AWSPrivateCAFullAccess 2>&1 | grep -v "already exists" || true
-  
+
   sleep 15
 
   RELEASE_VERSION=$(curl -sL https://api.github.com/repos/aws-controllers-k8s/acmpca-controller/releases/latest | 

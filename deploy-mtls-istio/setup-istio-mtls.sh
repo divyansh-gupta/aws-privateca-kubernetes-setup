@@ -5,7 +5,6 @@ set -euo pipefail
 REGION=${AWS_REGION:-us-east-1}
 CLUSTER_NAME=${CLUSTER_NAME:-aws-pca-k8s-demo}
 
-# Parse command line arguments
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
@@ -32,42 +31,41 @@ echo "Region: $REGION"
 
 kubectl create namespace istio-system --dry-run=client -o yaml | kubectl apply -f -
 
-# Apply the Istio configurations
+eksctl create podidentityassociation --cluster $CLUSTER_NAME --region $REGION \
+  --namespace istio-system \
+  --create-service-account \
+  --service-account-name istio-ingressgateway \
+  --permission-policy-arns arn:aws:iam::aws:policy/AmazonEKSLoadBalancingPolicy 2>&1 | grep -v "already exists" || true
+
+sleep 15
+
 echo "Applying Istio configurations..."
 envsubst < "$(dirname "$0")/manifests/istio-cert.yaml" | kubectl apply -f -
 kubectl wait --for=condition=Ready certificate.cert-manager.io/istio-ca -n istio-system --timeout=60s
 
-# Install Istio with Gateway support
 echo "Installing Istio with Gateway support..."
 istioctl install --set profile=default \
   --set meshConfig.caCertificates[0].secretName=istio-ca-key-pair \
   --set meshConfig.trustDomainAliases[0]="cluster.local" \
   -y
 
-# Create and label namespaces for demo
 echo "Creating demo namespace..."
 kubectl create namespace istio-demo --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace istio-demo istio-injection=enabled
 
 kubectl create namespace test-mtls --dry-run=client -o yaml | kubectl apply -f -
 
-# Apply Gateway certificate
 echo "Applying Gateway certificate..."
 kubectl apply -f "$(dirname "$0")/manifests/gateway-cert.yaml"
 kubectl wait --for=condition=Ready certificate.cert-manager.io/hello-cert -n istio-system --timeout=60s
 
-# Apply Gateway and Virtual Service
 echo "Applying Gateway configuration..."
 kubectl apply -f "$(dirname "$0")/manifests/gateway.yaml"
 
-# Deploy the example application
 echo "Deploying example application..."
 kubectl apply -f "$(dirname "$0")/manifests/demo-app.yaml"
-
-# Apply mTLS policy
 kubectl apply -f "$(dirname "$0")/manifests/peer-authentication.yaml"
 
-# Wait for pods to be ready
 echo "Waiting for pods to be ready..."
 kubectl wait --for=condition=Ready pod -l app=hello -n istio-demo --timeout=120s
 kubectl wait --for=condition=Ready pod -l app=client -n istio-demo --timeout=120s
