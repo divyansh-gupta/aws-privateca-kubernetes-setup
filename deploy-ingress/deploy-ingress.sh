@@ -44,6 +44,8 @@ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
   --namespace ingress-nginx \
   --create-namespace \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=ingress-nginx \
   --set controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-type"="nlb" \
   --set controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-scheme"="internet-facing"
 

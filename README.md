@@ -4,9 +4,9 @@
 
 ## Overview
 
-This sample demonstrates how to enable end to end encryption in transit on Kubernetes by integrating AWS Private Certificate Authority (PCA) to enable secure TLS communications using private certificates.
+This sample demonstrates how to enable end to end encryption in transit on Kubernetes by integrating AWS Private Certificate Authority (PCA) to enable secure TLS communications between clients, services, and pods.
 
-This project provides a complete setup via a set of four scripts, each with it's own README.
+This project provides a complete example setup via a set of four scripts, each with it's own README.
 
 ## Getting Started
 

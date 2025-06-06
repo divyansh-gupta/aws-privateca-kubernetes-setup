@@ -1,12 +1,12 @@
 # Deploy TLS-enabled Ingress
 
-This module demonstrates how to deploy a TLS-enabled service to your cluster, behind a NGINX ingress that uses certificates from AWS Private CA. If your cluster is using [EKS Auto Mode](https://aws.amazon.com/eks/auto-mode/) or the [AWS Load Balancer controller](https://github.com/kubernetes-sigs/aws-load-balancer-controller), this will also create an AWS Network Load Balancer.
+This module demonstrates how to deploy a TLS-enabled service to your cluster, behind an AWS Load Balancer.
 
 ## Overview
 
 This setup:
 1. Installs the NGINX ingress controller
-2. Deploys an AWS Network Load Balancer if using EKS Auto Mode or the AWS Load Balancer Controller
+2. Deploys an AWS Network Load Balancer
 3. Deploys a demo application to the cluster
 4. Automatically provisions a certificate from AWS Private CA
 5. Configures the ingress to process and terminate encrypted TLS connections
