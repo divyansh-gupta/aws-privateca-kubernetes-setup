@@ -90,13 +90,8 @@ eksctl create podidentityassociation --cluster $CLUSTER_NAME --region $REGION \
 
 sleep 15
 
-helm repo add awspca https://cert-manager.github.io/aws-privateca-issuer --force-update
-helm upgrade --install aws-privateca-issuer awspca/aws-privateca-issuer \
-  --namespace aws-privateca-issuer \
-  --create-namespace \
-  --set serviceAccount.create=false \
-  --set serviceAccount.name=aws-privateca-issuer
-
+kubectl label serviceaccount aws-privateca-issuer -n aws-privateca-issuer app.kubernetes.io/managed-by-
+eksctl create addon --name aws-privateca-connector-for-kubernetes --cluster $CLUSTER_NAME --region $REGION
 kubectl wait --for=condition=ready pods --all -n aws-privateca-issuer --timeout=180s
 
 echo "Creating AWS PCA Cluster Issuer..."

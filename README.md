@@ -21,7 +21,7 @@ Install core PKI encryption tooling and AWS Private CA as a certificate issuer f
    ./deploy-core-pki/deploy-core.sh
    ```
 
-3. [**Deploy TLS-enabled ingress**:](deploy-ingress/README.md)
+3. [**Deploy TLS-enabled service**:](deploy-ingress/README.md)
 Demonstrates how to deploy a TLS-enabled service to your cluster, behind a NGINX ingress that uses certificates from AWS Private CA.
    ```
    ./deploy-ingress/deploy-ingress.sh
