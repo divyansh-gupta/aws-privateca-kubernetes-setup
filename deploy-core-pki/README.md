@@ -52,12 +52,12 @@ kubectl get certificate example-cert
 
 After setting up the core integration, you can:
 
-1. [**Deploy TLS-enabled ingress**:](deploy-ingress/README.md)
+1. [**Deploy TLS-enabled ingress**:](../deploy-ingress/README.md)
    ```
    ../deploy-ingress/deploy-ingress.sh --cluster-name <cluster-name> --region <region>
    ```
 
-2. [**Deploy end to end encryption and mTLS with Istio**:](deploy-mtls-istio/README.md)
+2. [**Deploy end to end encryption and mTLS with Istio**:](../deploy-mtls-istio/README.md)
    ```
    ../deploy-mtls-istio/setup-istio-mtls.sh --cluster-name <cluster-name> --region <region>
    ```
